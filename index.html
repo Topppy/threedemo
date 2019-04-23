@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Static Template</title>
+</head>
+
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r80/three.js"></script>
+  <!-- three.js作者开发的帧数统计库可以检测动画运行时的帧数， -->
+  <script src="https://threejs.org/examples/js/libs/stats.min.js"></script>
+  <script>
+    // 参考
+    // https://juejin.im/post/5ba06119e51d450e84779ece
+    // https://cloud.tencent.com/developer/article/1005097
+    // https://blog.csdn.net/towrabbit/article/details/80179515
+    const { TextureLoader, MeshLambertMaterial } = THREE;
+
+    //帧数统计
+    var stats = new Stats();
+    document.body.appendChild(stats.dom);//简单的直接添加的方法
+
+    // 创建场景
+    var scene = new THREE.Scene();
+    // 创建透视相机
+    var camera = new THREE.PerspectiveCamera(
+      75, // 是视景体竖直方向上的张角
+      window.innerWidth / window.innerHeight, // aspect等于width / height，是照相机水平方向和竖直方向长度的比值，通常设为Canvas的横纵比例
+      0.1, // 照相机到视景体最近的距离，为正值。
+      1000 // 照相机到视景体最远的距离，为正值
+    );
+    camera.position.z = 5; // 指定相机位置
+    camera.position.y = 5; // 指定相机位置
+    camera.position.x = -5; // 指定相机位置
+    camera.lookAt(scene.position);
+
+    // 辅助线
+    var axes = new THREE.AxisHelper(20);
+    scene.add(axes);
+
+    // 创建一个 WebGL 渲染器
+    // three.js中有很多种类的渲染器，例如webGLRenderer、canvasRenderer、SVGRenderer，通常使用的是webGLRenderer渲染器。 
+    var renderer = new THREE.WebGLRenderer({
+      alpha: true // 默认情况下为黑色场景，此处设置为透明（即白色场景）
+    });
+    // 设置渲染器为全屏
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio); // 设置像素比，针对高清屏
+    renderer.setClearColor(0x000000, 1); // 设置默认背景色
+    renderer.shadowMap.enabled = true; // 渲染器将会渲染影子
+    // 添加到网页中
+    document.body.appendChild(renderer.domElement);
+
+    // 创建一个光源
+    var light = new THREE.SpotLight(0xffffff);
+    light.position.z = 5;
+    light.position.x = 5;
+    light.position.y = 5;
+    light.castShadow = true;
+    // 设置影子的精度
+    light.shadow.mapSize.width = light.shadow.mapSize.height = 2048;
+    scene.add(light);
+
+
+    // 创建一个长宽高都为1个单位的立方体
+    var geometry = new THREE.BoxGeometry(1, 1, 1);
+    // 创建材质，对光照无感
+    // var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    // 创建贴图材质，对光照有感
+    var texture = new TextureLoader().load('./thumb.png');
+    var material = new MeshLambertMaterial({ map: texture });
+    // 创建一个立方体网格（mesh）,将材质包裹在立方体上
+    var cube = new THREE.Mesh(geometry, material);
+    // 让物体们能够有自己的影子
+    cube.castShadow = true;
+    scene.add(cube); // 将立方体网格添加到场景中
+
+    // ----
+    var plane = new THREE.PlaneGeometry(10, 10, 10);
+    // 创建漫反射材质，对光照有感
+    var materialLambert = new THREE.MeshLambertMaterial({ color: 0xff0000 });
+    // 创建一个平面（mesh）,将材质包裹在平面上
+    var ground = new THREE.Mesh(plane, materialLambert);
+    // 让平面能够接受影子
+    ground.receiveShadow = true;
+    ground.position.z = 0;
+    ground.position.x = 0;
+    ground.position.y = -1;
+    ground.rotation.x = -0.5 * Math.PI;
+    scene.add(ground); // 将平面网格添加到场景中
+
+
+
+    function render() {
+      requestAnimationFrame(render); // 让浏览器执行参数中的函数，不断循环（浏览器一个新的API）
+      update(); // 更新场景
+      renderer.render(scene, camera); // 结合场景和相机进行渲染，即用摄像机拍下此刻的场景
+      stats.update();//更新animate函数 ，添加统计更新
+    }
+    function update() {
+      // 启动旋转
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      cube.rotation.z += 0.01;
+    }
+    // 渲染到屏幕上
+    render();
+  </script>
+</body>
+
+</html>
